@@ -28,17 +28,16 @@ class WebSocketService {
 }
 
 
+
 // Module 3 - WebSocket Service Provider
 final webSocketServiceProvider = Provider<WebSocketService>((ref) {
   return WebSocketService("wss://echo.websocket.events");
 });
 
-
-
 // Module 4 - StreamProvider
 final chatMessagesProvider = StreamProvider<String>((ref) {
   final webSocketService = ref.watch(webSocketServiceProvider);
-  
+
   ref.onDispose(() => webSocketService.dispose());
 
   return webSocketService.messageStream;
@@ -77,24 +76,20 @@ class MyApp extends StatelessWidget {  // Stateless = immutable = can't change
 
 
 // Class MyHomePage ===> Main Screen of the application (handles title, creates instance of _MyHomePageState to manage state)
-class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ; has seperat estate class (_MyHomePageState)
+class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ; has separate state class (_MyHomePageState)
   const MyHomePage({super.key, required this.title});
   final String title; // Allows for title of app
 
   @override 
   State<MyHomePage> createState() => _MyHomePageState(); // Creates instance of _MyHomePageState
-                                                         // Tells dart that the build is being redefined by another method 
 }
 
 
 
-// Class _MyHomePageState ===> User Interface for homescreen of application (styles look and function of home page)
-class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which extends StaefulWidget
-
-
-
-  // Module 3 - defines channel connection and TextEditingController for listeners to receive text field updates
-  final TextEditingController _controller = TextEditingController(); 
+// Class _MyHomePageState ===> User Interface for home screen of application (styles look and function of home page)
+class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which extends StatefulWidget
+  final TextEditingController _controller = TextEditingController(); // TextController for the input field
+  final List<String> _messages = []; // List to accumulate messages
 
 
 
@@ -105,51 +100,68 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title), 
       ),
-      body: 
-      Center( 
-        child: 
-          Column( 
-            mainAxisAlignment: MainAxisAlignment.center, 
-            children: <Widget>[
-              const Text('Welcome to the Real-Time Collaboration Module'), 
-              Form(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0), 
-
-                  // Module 3 - Box for user to enter data
-                  child: TextFormField(
-                    controller: _controller,
-                    decoration: const InputDecoration(labelText: 'Send a message'),
-                  ),
+      body: Center( 
+        child: Column( 
+          mainAxisAlignment: MainAxisAlignment.center, 
+          children: <Widget>[
+            const Text(''), 
+            const Text('Welcome to the Real-Time Collaboration Module'), 
+            Form(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0), 
+                // Module 3 - Box for user to enter data
+                child: TextFormField(
+                  controller: _controller,
+                  decoration: const InputDecoration(labelText: 'Send a message'),
                 ),
               ),
+            ),
+            const SizedBox(height: 24),
+            
+
+
+            // Module 3 - StreamBuilder listens for new messages and displays them
+            // Creates text box for data to be displayed; connects to stream and asks
+            // flutter to rebuild every time it receives an event using the builder() function
+            Consumer(
+              builder: (context, ref, child) {
+                final chatState = ref.watch(chatMessagesProvider);
+
+                return chatState.when(
+                  data: (message) {
+                    // Add message to the list
+                    _messages.add(message);
 
 
 
-              // Module 3 - StreamBuilder listens for new messages and displays them
-                          // Creates text box for data to be displayed; connects to stream and asks
-                          // flutter to rebuild every time it receives an event using the builder() function
-
-              const SizedBox(height: 24),
-              // Using Consumer to watch chatMessagesProvider
-              Consumer(
-                builder: (context, ref, child) {
-                  final chatState = ref.watch(chatMessagesProvider);
-
-                  return chatState.when(
-                    data: (message) {
-                      // Display incoming chat message (plain text)
-                      return Text(message); // Display the received message
-                    },
-                    loading: () => const CircularProgressIndicator(),
-                    error: (error, stackTrace) => Text('Error: $error'),
-                  );
-                },
-              ),
-            ],
-          ),
+                    // Module 3 - Displaying the list of messages using ListView.builder
+                    return Expanded(
+                      child: ListView.builder(
+                        itemCount: _messages.length,
+                        itemBuilder: (context, index) {
+                          // Alternate alignment for left and right
+                          return Align(
+                            alignment: index.isEven ? Alignment.centerLeft : Alignment.centerRight,
+                            child: Container(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                _messages[index],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  loading: () => const CircularProgressIndicator(),
+                  error: (error, stackTrace) => Text('Error: $error'),
+                );
+              },
+            ),
+          ],
         ),
-
+      ),
+      
 
 
       // Module 3 - Displays button for user to send data
@@ -162,6 +174,7 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
               if (message.isNotEmpty) {
                 webSocketService.sendMessage(message);
                 _controller.clear();
+                _messages.add(message);
               }
             },
             tooltip: 'Send message',
@@ -172,5 +185,4 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
     );
   }
 }
-
 
