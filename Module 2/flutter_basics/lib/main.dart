@@ -1,9 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart'; // Module 3
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Module 4
+
+
+
+// Module 3 - WebSocket Service (handles the WebSocket connection and communication)
+class WebSocketService {
+  final WebSocketChannel _channel;
+
+  WebSocketService(String url) : _channel = WebSocketChannel.connect(Uri.parse(url));
+
+  Stream<String> get messageStream {
+    return _channel.stream.map((data) {
+      return data.toString();
+    });
+  }
+
+  // Module 3 - sendMessage
+  void sendMessage(String message) {
+    _channel.sink.add(message); 
+  }
+
+  // Module 3 - dispose
+  void dispose() {
+    _channel.sink.close();
+  }
+}
+
+
+// Module 3 - WebSocket Service Provider
+final webSocketServiceProvider = Provider<WebSocketService>((ref) {
+  return WebSocketService("wss://echo.websocket.events");
+});
+
+
+
+// Module 4 - StreamProvider
+final chatMessagesProvider = StreamProvider<String>((ref) {
+  final webSocketService = ref.watch(webSocketServiceProvider);
+  
+  ref.onDispose(() => webSocketService.dispose());
+
+  return webSocketService.messageStream;
+});
+
+
 
 void main() { // Runs MyApp() 
-  runApp(const MyApp());
+  runApp(
+    // Module 4
+    // Wrap your app with ProviderScope at the root level to initialize Riverpod. 
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
+
 
 
 // Class MyApp ===> Root of the application 
@@ -23,6 +75,7 @@ class MyApp extends StatelessWidget {  // Stateless = immutable = can't change
 }
 
 
+
 // Class MyHomePage ===> Main Screen of the application (handles title, creates instance of _MyHomePageState to manage state)
 class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ; has seperat estate class (_MyHomePageState)
   const MyHomePage({super.key, required this.title});
@@ -34,15 +87,15 @@ class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ;
 }
 
 
+
 // Class _MyHomePageState ===> User Interface for homescreen of application (styles look and function of home page)
 class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which extends StaefulWidget
 
 
+
   // Module 3 - defines channel connection and TextEditingController for listeners to receive text field updates
-  final TextEditingController _controller = TextEditingController();
-  final _channel = WebSocketChannel.connect(
-    Uri.parse('wss://echo.websocket.events'),
-  );
+  final TextEditingController _controller = TextEditingController(); 
+
 
 
   @override
@@ -72,15 +125,25 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
               ),
 
 
+
               // Module 3 - StreamBuilder listens for new messages and displays them
                           // Creates text box for data to be displayed; connects to stream and asks
                           // flutter to rebuild every time it receives an event using the builder() function
 
               const SizedBox(height: 24),
-              StreamBuilder(
-                stream: _channel.stream,
-                builder: (context, snapshot) {
-                  return Text(snapshot.hasData ? '${snapshot.data}' : '');
+              // Using Consumer to watch chatMessagesProvider
+              Consumer(
+                builder: (context, ref, child) {
+                  final chatState = ref.watch(chatMessagesProvider);
+
+                  return chatState.when(
+                    data: (message) {
+                      // Display incoming chat message (plain text)
+                      return Text(message); // Display the received message
+                    },
+                    loading: () => const CircularProgressIndicator(),
+                    error: (error, stackTrace) => Text('Error: $error'),
+                  );
                 },
               ),
             ],
@@ -88,29 +151,26 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
         ),
 
 
-      // Module 3 - Displays button for user to send data; calls _sendMessage when pressed
-      floatingActionButton: FloatingActionButton(
-        onPressed: _sendMessage,
-        tooltip: 'Send message',
-        child: const Icon(Icons.send),
+
+      // Module 3 - Displays button for user to send data
+      floatingActionButton: Consumer(
+        builder: (context, ref, child) {
+          return FloatingActionButton(
+            onPressed: () {
+              final webSocketService = ref.read(webSocketServiceProvider); 
+              final message = _controller.text;
+              if (message.isNotEmpty) {
+                webSocketService.sendMessage(message);
+                _controller.clear();
+              }
+            },
+            tooltip: 'Send message',
+            child: const Icon(Icons.send),
+          );
+        },
       ),
     );
   }
-
-
-  // Module 3 - sends the data (message) to the server
-  void _sendMessage() {
-    if (_controller.text.isNotEmpty) {
-      _channel.sink.add(_controller.text);
-    }
-  }
-
-
-  // Module 3 - closes the websocket connection
-  @override
-  void dispose() {
-    _channel.sink.close();
-    _controller.dispose();
-    super.dispose();
-  }
 }
+
+
