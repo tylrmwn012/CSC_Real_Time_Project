@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // Module 2
 import 'package:web_socket_channel/web_socket_channel.dart'; // Module 3
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Module 4
 
 
 
+
 // Module 3 - WebSocket Service (handles the WebSocket connection and communication)
-class WebSocketService {
+class WebSocketService { 
   final WebSocketChannel _channel;
 
   WebSocketService(String url) : _channel = WebSocketChannel.connect(Uri.parse(url));
@@ -15,17 +16,16 @@ class WebSocketService {
       return data.toString();
     });
   }
-
   // Module 3 - sendMessage
   void sendMessage(String message) {
     _channel.sink.add(message); 
   }
-
   // Module 3 - dispose
   void dispose() {
     _channel.sink.close();
   }
 }
+
 
 
 
@@ -45,6 +45,7 @@ final chatMessagesProvider = StreamProvider<String>((ref) {
 
 
 
+
 void main() { // Runs MyApp() 
   runApp(
     // Module 4
@@ -54,6 +55,7 @@ void main() { // Runs MyApp()
     ),
   );
 }
+
 
 
 
@@ -75,6 +77,7 @@ class MyApp extends StatelessWidget {  // Stateless = immutable = can't change
 
 
 
+
 // Class MyHomePage ===> Main Screen of the application (handles title, creates instance of _MyHomePageState to manage state)
 class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ; has separate state class (_MyHomePageState)
   const MyHomePage({super.key, required this.title});
@@ -86,8 +89,12 @@ class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ;
 
 
 
+
 // Class _MyHomePageState ===> User Interface for home screen of application (styles look and function of home page)
 class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which extends StatefulWidget
+  
+  
+  
   final TextEditingController _controller = TextEditingController(); // TextController for the input field
   final List<String> _messages = []; // List to accumulate messages
 
@@ -120,7 +127,8 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
             
 
 
-            // Module 3 - StreamBuilder listens for new messages and displays them
+
+            // Module 3/4 - StreamBuilder (updated to Consumer) listens for new messages and displays them
             // Creates text box for data to be displayed; connects to stream and asks
             // flutter to rebuild every time it receives an event using the builder() function
             Consumer(
@@ -134,16 +142,19 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
 
 
 
-                    // Module 3 - Displaying the list of messages using ListView.builder
+
+                    // Module 3/4/5 - Displaying the list of messages using ListView.builder
                     return Expanded(
-                      child: ListView.builder(
+                      child: ListView.builder( // Module 5 - Scrollable list
+                        padding: const EdgeInsets.all(8),
                         itemCount: _messages.length,
-                        itemBuilder: (context, index) {
+                        itemBuilder: (BuildContext context, int index) {
                           // Alternate alignment for left and right
                           return Align(
                             alignment: index.isEven ? Alignment.centerLeft : Alignment.centerRight,
                             child: Container(
                               padding: const EdgeInsets.all(8.0),
+                              color: index.isEven? Colors.green[100] : Colors.blue[100] , 
                               child: Text(
                                 _messages[index],
                               ),
@@ -164,6 +175,7 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
       
 
 
+
       // Module 3 - Displays button for user to send data
       floatingActionButton: Consumer(
         builder: (context, ref, child) {
@@ -177,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
                 _messages.add(message);
               }
             },
-            tooltip: 'Send message',
+            tooltip: 'Send message', 
             child: const Icon(Icons.send),
           );
         },
