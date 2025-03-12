@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart'; // Module 2
 import 'package:web_socket_channel/web_socket_channel.dart'; // Module 3
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Module 4
+import 'package:intl/intl.dart';
+import 'dart:async';
 
 
 
@@ -33,6 +35,9 @@ class WebSocketService {
 final webSocketServiceProvider = Provider<WebSocketService>((ref) {
   return WebSocketService("wss://echo.websocket.events");
 });
+
+
+
 
 // Module 4 - StreamProvider
 final chatMessagesProvider = StreamProvider<String>((ref) {
@@ -68,7 +73,7 @@ class MyApp extends StatelessWidget {  // Stateless = immutable = can't change
     return MaterialApp( 
       title: 'Real-Time Collab App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
       home: const MyHomePage(title: 'Real-Time Collab App'),
     );
@@ -93,10 +98,10 @@ class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ;
 // Class _MyHomePageState ===> User Interface for home screen of application (styles look and function of home page)
 class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which extends StatefulWidget
   
-  
-  
   final TextEditingController _controller = TextEditingController(); // TextController for the input field
   final List<String> _messages = []; // List to accumulate messages
+  final List<String> _times = [];
+
 
 
 
@@ -138,7 +143,12 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
                 return chatState.when(
                   data: (message) {
                     // Add message to the list
-                    _messages.add(message);
+                    _messages.add(
+                      message,
+                    );
+                    _times.add(
+                      DateFormat('jms').format(DateTime.now()), // Capture time when message is sent
+                    );
 
 
 
@@ -155,8 +165,11 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
                             child: Container(
                               padding: const EdgeInsets.all(8.0),
                               color: index.isEven? Colors.green[100] : Colors.blue[100] , 
-                              child: Text(
-                                _messages[index],
+                              child: Column(
+                                children: <Widget>[
+                                  Text(_messages[index], ),
+                                  Text(_times[index], ),
+                                ],
                               ),
                             ),
                           );
@@ -181,15 +194,16 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
         builder: (context, ref, child) {
           return FloatingActionButton(
             onPressed: () {
-              final webSocketService = ref.read(webSocketServiceProvider); 
+              final webSocketService = ref.read(webSocketServiceProvider);
               final message = _controller.text;
               if (message.isNotEmpty) {
                 webSocketService.sendMessage(message);
                 _controller.clear();
-                _messages.add(message);
+                _messages.add(message,);
+                _times.add(DateFormat('jms').format(DateTime.now())); // Store time when sent)
               }
             },
-            tooltip: 'Send message', 
+            tooltip: 'Send message',
             child: const Icon(Icons.send),
           );
         },
