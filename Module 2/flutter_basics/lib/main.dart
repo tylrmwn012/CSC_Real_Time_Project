@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart'; // Module 2
 import 'package:web_socket_channel/web_socket_channel.dart'; // Module 3
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Module 4
-import 'package:intl/intl.dart';
-import 'dart:async';
+import 'package:intl/intl.dart'; // Module 5 - timestamp; for date time functions
+import 'dart:convert';
+import 'dart:async'; // Module 5 - timestamp; for syncing current time
 
-
+const String currentUserId = "user_123"; 
 
 
 // Module 3 - WebSocket Service (handles the WebSocket connection and communication)
@@ -13,14 +14,15 @@ class WebSocketService {
 
   WebSocketService(String url) : _channel = WebSocketChannel.connect(Uri.parse(url));
 
-  Stream<String> get messageStream {
+  Stream<Map<String, dynamic>> get messageStream {
     return _channel.stream.map((data) {
-      return data.toString();
+      return jsonDecode(data) as Map<String, dynamic>;
     });
   }
   // Module 3 - sendMessage
-  void sendMessage(String message) {
-    _channel.sink.add(message); 
+  void sendMessage(String userId, String message) {
+    final data = jsonEncode({'senderId': userId, 'message': message});
+    _channel.sink.add(data); 
   }
   // Module 3 - dispose
   void dispose() {
@@ -40,13 +42,12 @@ final webSocketServiceProvider = Provider<WebSocketService>((ref) {
 
 
 // Module 4 - StreamProvider
-final chatMessagesProvider = StreamProvider<String>((ref) {
+final chatMessagesProvider = StreamProvider<Map<String, dynamic>>((ref) {
   final webSocketService = ref.watch(webSocketServiceProvider);
-
   ref.onDispose(() => webSocketService.dispose());
-
   return webSocketService.messageStream;
 });
+
 
 
 
@@ -65,7 +66,7 @@ void main() { // Runs MyApp()
 
 
 // Class MyApp ===> Root of the application 
-class MyApp extends StatelessWidget {  // Stateless = immutable = can't change
+class MyApp extends StatelessWidget {  
   const MyApp({super.key});
 
   @override
@@ -84,12 +85,12 @@ class MyApp extends StatelessWidget {  // Stateless = immutable = can't change
 
 
 // Class MyHomePage ===> Main Screen of the application (handles title, creates instance of _MyHomePageState to manage state)
-class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ; has separate state class (_MyHomePageState)
+class MyHomePage extends StatefulWidget {  
   const MyHomePage({super.key, required this.title});
-  final String title; // Allows for title of app
+  final String title;
 
   @override 
-  State<MyHomePage> createState() => _MyHomePageState(); // Creates instance of _MyHomePageState
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
 
@@ -98,10 +99,9 @@ class MyHomePage extends StatefulWidget {   // Stateful = mutable = can change ;
 // Class _MyHomePageState ===> User Interface for home screen of application (styles look and function of home page)
 class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which extends StatefulWidget
   
-  final TextEditingController _controller = TextEditingController(); // TextController for the input field
-  final List<String> _messages = []; // List to accumulate messages
-  final List<String> _times = [];
-
+  final TextEditingController _controller = TextEditingController(); 
+  final List<Map<String, dynamic>> _messages = []; // Store messages as objects
+  final List<String> _times = []; // Module 5 - Added timestamps
 
 
 
@@ -159,6 +159,10 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
                         padding: const EdgeInsets.all(8),
                         itemCount: _messages.length,
                         itemBuilder: (BuildContext context, int index) {
+                          final messageData = _messages[index]; 
+                          final senderId = messageData['senderId'];
+                          final messageText = messageData['message'];
+                          final isMe = senderId == currentUserId;
                           // Alternate alignment for left and right
                           return Align(
                             alignment: index.isEven ? Alignment.centerLeft : Alignment.centerRight,
@@ -167,7 +171,8 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
                               color: index.isEven? Colors.green[100] : Colors.blue[100] , 
                               child: Column(
                                 children: <Widget>[
-                                  Text(_messages[index], ),
+                                  Text(isMe ? "From: You" : "From: Sender", ),
+                                  Text(messageText, ),
                                   Text(_times[index], ),
                                 ],
                               ),
@@ -197,10 +202,11 @@ class _MyHomePageState extends State<MyHomePage> { // extends MyHomePage which e
               final webSocketService = ref.read(webSocketServiceProvider);
               final message = _controller.text;
               if (message.isNotEmpty) {
-                webSocketService.sendMessage(message);
+                webSocketService.sendMessage(currentUserId, message);
                 _controller.clear();
-                _messages.add(message,);
-                _times.add(DateFormat('jms').format(DateTime.now())); // Store time when sent)
+                _messages.add({'senderId': currentUserId, 'message': message});
+                _times.add(DateFormat('jms').format(DateTime.now())); // Store timestamp
+                setState(() {}); // Refresh UI
               }
             },
             tooltip: 'Send message',
