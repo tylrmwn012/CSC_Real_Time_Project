@@ -22,6 +22,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<String> _messages = [];
   final List<String> _times = [];
 
+  final ScrollController _scrollController = ScrollController();
+
+
 
 
 
@@ -34,42 +37,26 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center( 
         child: Column( 
-          mainAxisAlignment: MainAxisAlignment.center, 
-          children: <Widget>[
-            const Text(''),
-            const Text('Welcome to the Real-Time Collaboration Module'), 
-            Form(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: _controller,
-                  decoration: const InputDecoration(labelText: 'Send a message'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-
-
-
-            // Module 3/4 - Consumer listens for new messages and updates UI
+          children: [
             Consumer(
               builder: (context, ref, child) {
                 final chatState = ref.watch(chatMessagesProvider);
 
                 return chatState.when(
                   data: (message) {
-                    // Only prepend "Sender: " if the message doesn't already have "You: "
+                   
                     final formattedMessage = message.startsWith("You: ") 
-                        ? message                 // Keep your own messages as they are
-                        : "Sender: $message";     // Mark incoming messages as "Sender: "
+                        ? message                
+                        : "Sender: $message";     
 
                     _messages.add(formattedMessage);
                     _times.add(DateFormat('jms').format(DateTime.now())); 
 
                     return Expanded(
                       child: ListView.builder(
-                        padding: const EdgeInsets.all(8),
+                        controller: _scrollController, // Attach scroll controller
+                        reverse: true,
+                        padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                         itemCount: _messages.length,
                         itemBuilder: (BuildContext context, int index) {
                           final notUserMessage = _messages[index].startsWith("Sender: ");
@@ -77,7 +64,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           return Align(
                             alignment: notUserMessage ? Alignment.centerRight : Alignment.centerLeft,
                             child: Container(
-                              padding: const EdgeInsets.all(8.0),
+                              constraints: BoxConstraints(minWidth: 100, maxWidth: 300),
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                               margin: const EdgeInsets.symmetric(vertical: 4.0),
                               decoration: BoxDecoration(
                                 color: notUserMessage ? Colors.blue[100] : Colors.green[100],
@@ -106,34 +94,56 @@ class _MyHomePageState extends State<MyHomePage> {
                   error: (error, stackTrace) => Text('Error: $error'),
                 );
               },
-            )
+            ),
+            Form(
+                child: Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: Container(
+                    
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Optional padding
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _controller,
+                            decoration: const InputDecoration(
+                              labelText: 'Send a message',
+                            ),
+                            maxLines: 3,
+                            minLines: 1,
+                            keyboardType: TextInputType.multiline,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            return FloatingActionButton(
+                              onPressed: () {
+                                final webSocketService = ref.read(webSocketServiceProvider);
+                                final message = _controller.text.trim();
+                                if (message.isNotEmpty) {
+                                  final formattedMessage = "You: $message";
+                                  webSocketService.sendMessage(message);
+                                  _controller.clear();
+                                  _messages.add(formattedMessage);
+                                  _times.add(DateFormat('jms').format(DateTime.now()));
+                                }
+                              },
+                              tooltip: 'Send message',
+                              child: const Icon(Icons.send),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  )
+                ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
-
-
-      
-
-      // Floating Button for Sending Messages
-      floatingActionButton: Consumer(
-        builder: (context, ref, child) {
-          return FloatingActionButton(
-            onPressed: () {
-              final webSocketService = ref.read(webSocketServiceProvider);
-              final message = _controller.text.trim();
-              if (message.isNotEmpty) { 
-                final formattedMessage = "You: $message";  // Add "You: " only for outgoing messages
-                webSocketService.sendMessage(message);     // Send original message (no "You: ")
-                _controller.clear();
-                _messages.add(formattedMessage);            // Display with "You: " in your UI
-                _times.add(DateFormat('jms').format(DateTime.now()));
-              }
-            },
-            tooltip: 'Send message',
-            child: const Icon(Icons.send),
-          );
-        },
-      ),
+      backgroundColor: Colors.grey[250],
     );
   }
 }

@@ -10,9 +10,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp( 
       title: 'Real-Time Collab App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      home: const my_home_page.MyHomePage(title: 'Real-Time Collab App'),
+      home: const my_home_page.MyHomePage(title: 'Real-Time Collab'),
     );
   }
 }
