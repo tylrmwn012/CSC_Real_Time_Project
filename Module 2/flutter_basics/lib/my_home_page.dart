@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart'; // Module 2
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Module 4
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'web_socket_server.dart';
 
@@ -17,9 +18,33 @@ class MyHomePage extends StatefulWidget {
 
 
 class _MyHomePageState extends State<MyHomePage> {
+  final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
   final List<String> _messages = [];
   final List<String> _times = [];
+
+
+  // function to handle sending of message
+  void _sendMessage(WidgetRef ref) {
+    final webSocketService = ref.read(webSocketServiceProvider);
+    final message = _controller.text.trim();
+    if (message.isNotEmpty) {
+      final formattedMessage = "You: $message";
+      webSocketService.sendMessage(message);
+      _controller.clear();
+      _messages.insert(0, formattedMessage);
+      _times.insert(0, DateFormat('jms').format(DateTime.now()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please type a message to continue..."),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           final notUserMessage = _messages[index].startsWith("Sender: ");
 
                           return Align(
-                            alignment: notUserMessage ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment: notUserMessage ? Alignment.centerLeft : Alignment.centerRight,
                             child: Container(
                               constraints: const BoxConstraints(minWidth: 100, maxWidth: 300),
                               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
@@ -95,6 +120,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Expanded(
                         child: TextFormField(
+                          focusNode: _focusNode,
+                          textInputAction: TextInputAction.unspecified,
+                          autofocus: true,
                           controller: _controller,
                           decoration: const InputDecoration(
                             labelText: 'Send a message',
@@ -107,26 +135,22 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 10),
                       Consumer(
                         builder: (context, ref, child) {
-                            return FloatingActionButton(
-                              onPressed: () {
-                                final webSocketService = ref.read(webSocketServiceProvider);
-                                final message = _controller.text.trim();
-                                if (message.isNotEmpty) {
-                                  final formattedMessage = "You: $message";
-                                  webSocketService.sendMessage(message);
-                                  _controller.clear();
-                                  _messages.insert(0, formattedMessage);
-                                  _times.insert(0, DateFormat('jms').format(DateTime.now()));
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Please type message to continue..."),
-                                      duration: Duration(seconds: 1),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: const Icon(Icons.send),
+                          return Column(
+                            children: [
+                              KeyboardListener(
+                                focusNode: _focusNode,
+                                onKeyEvent: (event) {
+                                  if (event is KeyUpEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+                                    _sendMessage(ref);
+                                  }
+                                },
+                                child: const SizedBox(),
+                              ),
+                              FloatingActionButton(
+                                onPressed: () => _sendMessage(ref),
+                                child: const Icon(Icons.send),
+                              ),
+                            ],
                           );
                         },
                       ),
