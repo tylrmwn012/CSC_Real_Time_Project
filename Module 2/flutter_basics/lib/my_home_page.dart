@@ -20,7 +20,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _controller = TextEditingController();
   final List<String> _messages = [];
   final List<String> _times = [];
-  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +41,11 @@ class _MyHomePageState extends State<MyHomePage> {
                         ? message
                         : "Sender: $message";
 
-                    _messages.add(formattedMessage);
-                    _times.add(DateFormat('jms').format(DateTime.now()));
+                    _messages.insert(0, formattedMessage);
+                    _times.insert(0, DateFormat('jms').format(DateTime.now()));
 
                     return Expanded(
                       child: ListView.builder(
-                        controller: _scrollController,
                         reverse: true,
                         padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                         itemCount: _messages.length,
@@ -117,8 +115,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                   final formattedMessage = "You: $message";
                                   webSocketService.sendMessage(message);
                                   _controller.clear();
-                                  _messages.add(formattedMessage);
-                                  _times.add(DateFormat('jms').format(DateTime.now()));
+                                  _messages.insert(0, formattedMessage);
+                                  _times.insert(0, DateFormat('jms').format(DateTime.now()));
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
