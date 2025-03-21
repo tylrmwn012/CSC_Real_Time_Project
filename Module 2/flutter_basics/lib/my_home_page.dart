@@ -17,6 +17,52 @@ class MyHomePage extends StatefulWidget {
 
 
 
+
+
+
+
+class SecondScreen extends StatelessWidget {
+  const SecondScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('Real-Time Collab: Contacts'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 16.0),
+            SizedBox(
+        height: 100.0,
+        width: 500,
+        child: SizedBox(
+          child: FloatingActionButton( 
+            onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Web-Socket Contact'),
+              ),
+            ),
+          ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
 class _MyHomePageState extends State<MyHomePage> {
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
@@ -56,6 +102,16 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Column(
           children: [
+            FloatingActionButton(
+              onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SecondScreen()),
+                      );
+                    },
+              tooltip: 'Increment',
+              child: const Icon(Icons.add),
+            ),
             Consumer(
               builder: (context, ref, child) {
                 final chatState = ref.watch(chatMessagesProvider);
@@ -111,6 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
             ),
+            // handles message input and sending
             Form(
               child: Padding(
                 padding: const EdgeInsets.all(0),
@@ -121,7 +178,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: TextFormField(
                           focusNode: _focusNode,
-                          textInputAction: TextInputAction.unspecified,
                           autofocus: true,
                           controller: _controller,
                           decoration: const InputDecoration(
@@ -135,8 +191,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 10),
                       Consumer(
                         builder: (context, ref, child) {
-                          return Column(
+                          return Row(
                             children: [
+                              // handles button sending
+                              FilledButton(
+                                onPressed: () => _sendMessage(ref),
+                                child: const Icon(Icons.send),
+                              ),
+                              // handles return key sending
                               KeyboardListener(
                                 focusNode: _focusNode,
                                 onKeyEvent: (event) {
@@ -145,10 +207,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                   }
                                 },
                                 child: const SizedBox(),
-                              ),
-                              FloatingActionButton(
-                                onPressed: () => _sendMessage(ref),
-                                child: const Icon(Icons.send),
                               ),
                             ],
                           );
@@ -167,3 +225,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+
+
