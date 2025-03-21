@@ -5,18 +5,15 @@ import 'package:intl/intl.dart';
 import 'web_socket_server.dart';
 
 
-class SecondScreen extends StatefulWidget {
-  const SecondScreen({super.key});
+class ConversationScreen extends StatefulWidget {
+  const ConversationScreen({super.key});
 
   @override
-  State<SecondScreen> createState() => _SecondScreenState();
+  State<ConversationScreen> createState() => _ConversationScreenState();
 }
 
 
-
-
-
-class _SecondScreenState extends State<SecondScreen> {
+class _ConversationScreenState extends State<ConversationScreen> {
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
   final List<String> _messages = [];
@@ -107,6 +104,9 @@ class _SecondScreenState extends State<SecondScreen> {
                 );
               },
             ),
+
+
+            
             // handles message input and sending
             Form(
               child: Padding(
@@ -165,24 +165,4 @@ class _SecondScreenState extends State<SecondScreen> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
