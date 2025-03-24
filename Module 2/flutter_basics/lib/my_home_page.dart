@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart'; // Module 2
 import 'echo_conversation_screen.dart' as echo_conversation_screen;
 import 'one_contact.dart' as one_contact;
-import 'two_contact.dart' as two_contact;
 
 
 // Now this is the main screen (formerly SecondScreen)
@@ -39,8 +38,6 @@ class MyHomePage extends StatelessWidget {
                   child: const Text('Web-Socket Contact'),
                 ),
               ),
-            
-
 // one
               
               SizedBox(
@@ -57,26 +54,6 @@ class MyHomePage extends StatelessWidget {
                   child: const Text('One Contact'),
                 ),
               ),
-
-
-// two
-              
-              SizedBox(
-                height: 100.0,
-                width: 500,
-                child: FloatingActionButton(
-                  heroTag: "btn3",
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const two_contact.ConversationScreen()),
-                    );
-                  },
-                  child: const Text('Two Contact'),
-                ),
-              ),
-            
-
           ],
         ),
       ),
