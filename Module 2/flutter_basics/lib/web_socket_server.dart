@@ -56,8 +56,6 @@ final chatMessagesProvider = StreamProvider<String>((ref) {
   return webSocketService.messageStream;
 });
 
-
-
 // StreamProvider for WebSocket errors
 final webSocketErrorProvider = StreamProvider<String>((ref) {
   final webSocketService = ref.watch(webSocketServiceProvider);
