@@ -14,7 +14,7 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(       
       appBar: AppBar(
         backgroundColor: Colors.blue[100],
-        title: const Text('Contacts'),
+        title: const Text('Contacts (Servers)'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
