@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart'; // Module 2
-import 'echo_conversation_screen.dart' as echo_conversation_screen;
-import 'one_contact.dart' as one_contact;
+import '../Chats/echo_conversation_screen.dart' as echo_conversation_screen;
+import '../Chats/one_contact.dart' as one_contact;
 
 
 // Now this is the main screen (formerly SecondScreen)
@@ -13,8 +13,8 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(       
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Real-Time Collab: Contacts'),
+        backgroundColor: Colors.blue[100],
+        title: const Text('Contacts'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -57,6 +57,14 @@ class MyHomePage extends StatelessWidget {
           ],
         ),
       ),
+      backgroundColor: Colors.grey[200],
     );
   }
 }
+
+
+
+
+
+
+        

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart'; // Module 2
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Module 4
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'web_socket_server.dart';
+import '../Web Socket/ws_server.dart';
 
 
 class ConversationScreen extends StatefulWidget {
@@ -43,7 +43,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.blue[100],
         title: const Text('Chat Screen'),
       ),
       body: Center(
@@ -161,7 +161,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
           ],
         ),
       ),
-      backgroundColor: Colors.grey[250],
+      backgroundColor: Colors.grey[200],
     );
   }
 }

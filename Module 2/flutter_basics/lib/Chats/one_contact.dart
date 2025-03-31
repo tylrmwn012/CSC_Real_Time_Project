@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart'; // Module 2
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Module 4
 import 'package:intl/intl.dart';
-import 'one_web.dart';
+import '../Web Socket/one_web.dart';
 
 
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -39,7 +39,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.blue[100],
         title: const Text('Chat Screen'),
       ),
       body: Column(
@@ -132,7 +132,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           const SizedBox(height: 24),
         ],
       ),
-      backgroundColor: Colors.grey[250],
+      backgroundColor: Colors.grey[200],
     );
   }
 }
