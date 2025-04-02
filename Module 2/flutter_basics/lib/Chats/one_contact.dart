@@ -54,7 +54,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[100],
-        title: const Text('Chat Screen'),
+        title: const Text('One Contact'),
       ),
       body: Center(
         child: Column(

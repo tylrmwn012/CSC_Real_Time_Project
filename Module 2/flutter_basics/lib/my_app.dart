@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
       title: 'Real-Time Collab App',
 theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent, brightness: Brightness.light)),
 
-      home: const log_in.MyHomePage(title: 'Real-Time Collab'),
+      home: log_in.MyHomePage(title: 'Real-Time Collab'),
     );
   }
 }

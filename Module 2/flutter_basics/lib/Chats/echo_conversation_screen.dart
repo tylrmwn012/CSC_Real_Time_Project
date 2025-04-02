@@ -44,7 +44,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[100],
-        title: const Text('Chat Screen'),
+        title: const Text('Echo Contact'),
       ),
       body: Center(
         child: Column(
@@ -57,7 +57,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   data: (message) {
                     final formattedMessage = message.startsWith("You: ")
                         ? message
-                        : "Sender: $message";
+                        : "Echo: $message";
 
                     _messages.insert(0, formattedMessage);
                     _times.insert(0, DateFormat('jms').format(DateTime.now()));
@@ -68,7 +68,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                         itemCount: _messages.length,
                         itemBuilder: (BuildContext context, int index) {
-                          final notUserMessage = _messages[index].startsWith("Sender: ");
+                          final notUserMessage = _messages[index].startsWith("Echo: ");
 
                           return Align(
                             alignment: notUserMessage ? Alignment.centerLeft : Alignment.centerRight,
@@ -99,7 +99,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       ),
                     );
                   },
-                  loading: () => const CircularProgressIndicator(),
+                  loading: () => SizedBox(),
                   error: (error, stackTrace) => Text('Error: $error'),
                 );
               },
@@ -146,7 +146,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                     _sendMessage(ref);
                                   }
                                 },
-                                child: const SizedBox(),
+                                child: Container(),
                               ),
                             ],
                           );

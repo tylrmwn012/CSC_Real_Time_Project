@@ -4,9 +4,9 @@ import '../Web Socket/contacts.dart' as my_home_page;
 
 // Now this is the main screen (formerly SecondScreen)
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
+  MyHomePage({super.key, required this.title});
   final String title;
-
+  final textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +29,30 @@ class MyHomePage extends StatelessWidget {
             TextField(
                   obscureText: false,
                   decoration: InputDecoration(labelText: 'Name'),
+                  controller: textController,
                 ),
 
              SizedBox(
                 width: 250,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => my_home_page.MyHomePage(title: title)
+                    final userId = textController.text.trim();
+
+                    if (userId.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => my_home_page.MyHomePage(title: title)
+                          ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Name is required in order to continue"),
+                          duration: Duration(seconds: 3),
                         ),
-                    );
+                      );
+                    }
                   },
                   child: const Text('Continue'), 
                 ),

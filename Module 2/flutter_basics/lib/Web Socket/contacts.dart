@@ -35,7 +35,7 @@ class MyHomePage extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const echo_conversation_screen.ConversationScreen()),
                     );
                   },
-                  child: const Text('Web-Socket Contact'),
+                  child: const Text('Echo Contact'),
                 ),
               ),
 // one
