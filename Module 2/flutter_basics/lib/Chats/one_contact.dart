@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,6 @@ import '../Web Socket/one_web.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
   final String userId;
-
   const ConversationScreen({super.key, required this.userId});
 
   @override
@@ -14,33 +14,44 @@ class ConversationScreen extends ConsumerStatefulWidget {
 }
 
 
+
 class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _controller = TextEditingController();
-  final List<String> _messages = []; // List to store all messages
+  final List<String> _messages = [];
 
   @override
   void initState() {
     super.initState();
     final webSocketService = ref.read(webSocketServiceProvider);
 
-    // Listen to WebSocket messages and update state
+    // takes incoming messages and adds them to the list in the following format
+    // at index 0
     webSocketService.messageStream.listen((newMessage) {
+      final decodedMessage = jsonDecode(newMessage);
+      final senderId = decodedMessage['senderId'];
+      final text = decodedMessage['text'];
+
       setState(() {
-        _messages.insert(0, newMessage); // Insert at the top for reverse display
+        _messages.insert(0, "$senderId: $text");
       });
     });
   }
 
-  // Function to handle sending messages
-  void _sendMessage(WidgetRef ref) {
+  void _sendMessage() {
     final webSocketService = ref.read(webSocketServiceProvider);
     final message = _controller.text.trim();
     if (message.isNotEmpty) {
-      setState(() {
-        _messages.insert(0, "${widget.userId}: $message"); // Store sent message in the list
+      final formattedMessage = jsonEncode({
+        "senderId": widget.userId,
+        "text": message,
       });
-      webSocketService.sendMessage(message);
+
+      setState(() {
+        _messages.insert(0, "${widget.userId}: $message");
+      });
+
+      webSocketService.sendMessage(formattedMessage);
       _controller.clear();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -59,27 +70,31 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         backgroundColor: Colors.blue[100],
         title: const Text('One Contact'),
       ),
+
       body: Center(
         child: Column(
           children: [
             // Message Display Area
             Expanded(
+
               child: ListView.builder(
                 reverse: true,
                 padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 7),
                 itemCount: _messages.length,
                 itemBuilder: (BuildContext context, int index) {
+                  // split index into a sender and message to see whether the user sent it or not
                   final message = _messages[index];
-                  final notUserMessage = !message.startsWith("${widget.userId}: ");
+                  final sender = message.split(": ")[0];
+                  final isUserMessage = sender == widget.userId;
 
                   return Align(
-                    alignment: notUserMessage ? Alignment.centerLeft : Alignment.centerRight,
+                    alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
                       constraints: const BoxConstraints(minWidth: 100, maxWidth: 300),
                       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                       margin: const EdgeInsets.symmetric(vertical: 4.0),
                       decoration: BoxDecoration(
-                        color: notUserMessage ? Colors.blue[100] : Colors.green[100],
+                        color: isUserMessage ? Colors.green[100] : Colors.blue[100],
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       child: Column(
@@ -101,55 +116,44 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
               ),
             ),
 
-            // handles message input and sending
-            Form(
-              child: Padding(
-                padding: const EdgeInsets.all(0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          focusNode: _focusNode,
-                          autofocus: true,
-                          controller: _controller,
-                          decoration: const InputDecoration(
-                            labelText: 'Send a message',
-                          ),
-                          maxLines: 3,
-                          minLines: 1,
-                          keyboardType: TextInputType.multiline,
-                        ),
+
+            // Message Input Field
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      focusNode: _focusNode,
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        labelText: 'Send a message',
                       ),
-                      const SizedBox(width: 10),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          return Row(
-                            children: [
-                              // handles button sending
-                              FilledButton(
-                                onPressed: () => _sendMessage(ref),
-                                child: const Icon(Icons.send),
-                              ),
-                              // handles return key sending
-                              KeyboardListener(
-                                focusNode: _focusNode,
-                                onKeyEvent: (event) {
-                                  if (event is KeyUpEvent && event.logicalKey == LogicalKeyboardKey.enter) {
-                                    _sendMessage(ref);
-                                  }
-                                },
-                                child: const SizedBox(),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
+                      maxLines: 3,
+                      minLines: 1,
+                      keyboardType: TextInputType.multiline,
+                      onFieldSubmitted: (_) => _sendMessage(), // Handles "Enter" key on mobile
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  FilledButton(
+                    onPressed: _sendMessage,
+                    child: const Icon(Icons.send),
+                  ),
+                ],
               ),
+            ),
+
+
+            // Handles keyboard "Enter" key press on desktop
+            KeyboardListener(
+              focusNode: _focusNode,
+              onKeyEvent: (event) {
+                if (event is KeyUpEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+                  _sendMessage();
+                }
+              },
+              child: const SizedBox(),
             ),
             const SizedBox(height: 24),
           ],
