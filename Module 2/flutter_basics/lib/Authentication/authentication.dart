@@ -8,6 +8,24 @@ class MyHomePage extends StatelessWidget {
   final String title;
   final textController = TextEditingController();
 
+  void _nextPage(userId, context) {
+    if (userId.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => my_home_page.MyHomePage(title: title, userId: userId)
+          ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Name is required in order to continue"),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(  
@@ -37,22 +55,7 @@ class MyHomePage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {
                     final userId = textController.text.trim();
-
-                    if (userId.isNotEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => my_home_page.MyHomePage(title: title)
-                          ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Name is required in order to continue"),
-                          duration: Duration(seconds: 3),
-                        ),
-                      );
-                    }
+                    _nextPage(userId, context);
                   },
                   child: const Text('Continue'), 
                 ),

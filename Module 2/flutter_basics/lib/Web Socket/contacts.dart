@@ -5,8 +5,9 @@ import '../Chats/one_contact.dart' as one_contact;
 
 // Now this is the main screen (formerly SecondScreen)
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key, required this.title, required this.userId});
   final String title;
+  final String userId;
 
 
   @override
@@ -48,7 +49,7 @@ class MyHomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const one_contact.ConversationScreen()),
+                      MaterialPageRoute(builder: (context) => one_contact.ConversationScreen(userId: userId)),
                     );
                   },
                   child: const Text('One Contact'),

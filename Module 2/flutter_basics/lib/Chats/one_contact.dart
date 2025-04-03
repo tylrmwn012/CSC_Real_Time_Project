@@ -5,11 +5,14 @@ import 'package:flutter/services.dart';
 import '../Web Socket/one_web.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
-  const ConversationScreen({super.key});
+  final String userId;
+
+  const ConversationScreen({super.key, required this.userId});
 
   @override
   ConsumerState<ConversationScreen> createState() => _ConversationScreenState();
 }
+
 
 class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   final FocusNode _focusNode = FocusNode();
@@ -35,7 +38,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final message = _controller.text.trim();
     if (message.isNotEmpty) {
       setState(() {
-        _messages.insert(0, "You: $message"); // Store sent message in the list
+        _messages.insert(0, "${widget.userId}: $message"); // Store sent message in the list
       });
       webSocketService.sendMessage(message);
       _controller.clear();
@@ -67,7 +70,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                 itemCount: _messages.length,
                 itemBuilder: (BuildContext context, int index) {
                   final message = _messages[index];
-                  final notUserMessage = !message.startsWith("You: ");
+                  final notUserMessage = !message.startsWith("${widget.userId}: ");
 
                   return Align(
                     alignment: notUserMessage ? Alignment.centerLeft : Alignment.centerRight,
